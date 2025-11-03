@@ -1,0 +1,25 @@
+## .NET
+bin/
+obj/
+*.user
+*.suo
+*.userprefs
+.vs/
+*.log
+
+## Docker
+.dockerignore
+
+## Redis
+dump.rdb
+
+## IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+## OS
+.DS_Store
+Thumbs.db

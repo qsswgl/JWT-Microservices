@@ -1,0 +1,333 @@
+{
+  "info": {
+    "name": "JWT微服务架构API",
+    "description": "JWT配合API网关实现的微服务认证授权解决方案",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000",
+      "type": "string"
+    },
+    {
+      "key": "accessToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "refreshToken",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "认证API",
+      "item": [
+        {
+          "name": "1. 管理员登录",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// 自动保存Token到环境变量",
+                  "var jsonData = pm.response.json();",
+                  "pm.environment.set(\"accessToken\", jsonData.accessToken);",
+                  "pm.environment.set(\"refreshToken\", jsonData.refreshToken);",
+                  "",
+                  "// 测试断言",
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has accessToken\", function () {",
+                  "    pm.expect(jsonData.accessToken).to.be.a('string');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"admin123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "login"]
+            },
+            "description": "使用管理员账号登录，获取Access Token和Refresh Token"
+          }
+        },
+        {
+          "name": "2. 普通用户登录",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"zhangsan\",\n  \"password\": \"pass123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "login"]
+            },
+            "description": "使用普通用户账号登录"
+          }
+        },
+        {
+          "name": "3. 获取当前用户信息",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "me"]
+            },
+            "description": "获取当前登录用户的详细信息"
+          }
+        },
+        {
+          "name": "4. 刷新Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// 更新Access Token",
+                  "var jsonData = pm.response.json();",
+                  "pm.environment.set(\"accessToken\", jsonData.accessToken);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/refresh",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "refresh"]
+            },
+            "description": "使用Refresh Token获取新的Access Token"
+          }
+        },
+        {
+          "name": "5. 用户登出",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/logout",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "logout"]
+            },
+            "description": "用户登出，撤销当前Token"
+          }
+        }
+      ]
+    },
+    {
+      "name": "订单API",
+      "item": [
+        {
+          "name": "1. 获取所有订单",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/orders",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "orders"]
+            },
+            "description": "获取订单列表。管理员可以看到所有订单，普通用户只能看到自己的订单。"
+          }
+        },
+        {
+          "name": "2. 获取指定订单",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/orders/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "orders", "1"]
+            },
+            "description": "根据ID获取订单详情"
+          }
+        },
+        {
+          "name": "3. 创建订单",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [\n    {\n      \"productName\": \"MacBook Pro\",\n      \"quantity\": 1,\n      \"price\": 12999.00\n    },\n    {\n      \"productName\": \"Magic Mouse\",\n      \"quantity\": 2,\n      \"price\": 699.00\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/orders",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "orders"]
+            },
+            "description": "创建新订单"
+          }
+        },
+        {
+          "name": "4. 更新订单状态",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"Processing\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/orders/1/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "orders", "1", "status"]
+            },
+            "description": "更新订单状态。管理员或订单拥有者可以更新。"
+          }
+        },
+        {
+          "name": "5. 删除订单（仅管理员）",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/orders/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "orders", "1"]
+            },
+            "description": "删除订单。仅管理员可以执行此操作。"
+          }
+        }
+      ]
+    },
+    {
+      "name": "测试场景",
+      "item": [
+        {
+          "name": "场景1: 无Token访问（应失败）",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/orders",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "orders"]
+            },
+            "description": "不携带Token访问受保护的API，应该返回401"
+          }
+        },
+        {
+          "name": "场景2: 无效Token访问（应失败）",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer invalid.token.here"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/orders",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "orders"]
+            },
+            "description": "使用无效Token访问，应该返回401"
+          }
+        },
+        {
+          "name": "场景3: 普通用户删除订单（应失败）",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "description": "先用zhangsan登录获取Token"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/orders/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "orders", "1"]
+            },
+            "description": "普通用户尝试删除订单，应该返回403"
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,80 @@
+version: '3.8'
+
+services:
+  # Redis缓存服务
+  redis:
+    image: redis:7-alpine
+    container_name: jwt-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes
+    networks:
+      - jwt-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  # 认证服务
+  authservice:
+    build:
+      context: .
+      dockerfile: src/AuthService/Dockerfile
+    container_name: jwt-authservice
+    ports:
+      - "6001:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__Redis=redis:6379
+      - Jwt__SecretKey=your-super-secret-key-at-least-32-characters-long-for-security
+      - Jwt__Issuer=AuthService
+      - Jwt__Audience=ApiGateway
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - jwt-network
+
+  # 订单服务
+  orderservice:
+    build:
+      context: .
+      dockerfile: src/OrderService/Dockerfile
+    container_name: jwt-orderservice
+    ports:
+      - "6002:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    networks:
+      - jwt-network
+
+  # API网关
+  apigateway:
+    build:
+      context: .
+      dockerfile: src/ApiGateway/Dockerfile
+    container_name: jwt-apigateway
+    ports:
+      - "6005:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__Redis=redis:6379
+      - Jwt__SecretKey=your-super-secret-key-at-least-32-characters-long-for-security
+      - Jwt__Issuer=AuthService
+      - Jwt__Audience=ApiGateway
+    depends_on:
+      - redis
+      - authservice
+      - orderservice
+    networks:
+      - jwt-network
+
+networks:
+  jwt-network:
+    driver: bridge
+
+volumes:
+  redis-data:
