@@ -1,6 +1,15 @@
 # JWT配合API网关实现微服务架构API授权解决方案
 
+[![.NET](https://img.shields.io/badge/.NET-8.0-blue.svg)](https://dotnet.microsoft.com/)
+[![Ocelot](https://img.shields.io/badge/Ocelot-23.0.0-green.svg)](https://github.com/ThreeMammals/Ocelot)
+[![Redis](https://img.shields.io/badge/Redis-7--alpine-red.svg)](https://redis.io/)
+[![Docker](https://img.shields.io/badge/Docker-Compose-blue.svg)](https://www.docker.com/)
+[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![GitHub](https://img.shields.io/badge/GitHub-qsswgl%2FJWT--Microservices-black.svg)](https://github.com/qsswgl/JWT-Microservices)
+
 这是一个完整的基于JWT和API网关的微服务认证授权解决方案，使用.NET 8和Ocelot实现。
+
+🌐 **GitHub 仓库**: https://github.com/qsswgl/JWT-Microservices
 
 ## 📋 项目架构
 
